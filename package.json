@@ -1,0 +1,20 @@
+{
+  "name": "yz-sdk",
+  "version": "0.0.1",
+  "scripts": {
+    "start": "node ./example.js",
+    "compile": "babel main.js --out-file index.js"
+  },
+  "main": "index.js",
+  "files": [
+    "index.js"
+  ],
+  "license": "MIT",
+  "dependencies": {
+    "urllib": "^2.34.0"
+  },
+  "devDependencies": {
+    "babel-cli": "^6.26.0",
+    "babel-preset-es2015": "^6.24.1"
+  }
+}
