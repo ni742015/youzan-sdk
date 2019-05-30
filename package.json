@@ -1,6 +1,6 @@
 {
   "name": "yz-sdk",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "scripts": {
     "start": "node ./example.js",
     "compile": "babel main.js --out-file index.js"

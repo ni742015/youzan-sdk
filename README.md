@@ -1,6 +1,6 @@
 # Youzan SDK
 
-有赞SDK，包含token生成及管理功能（如token失效会自动刷新）以及消息中间件。
+有赞SDK，包含token生成及管理功能（如token失效会自动刷新）API封装以及消息中间件。
 
 
 ## Requirement
