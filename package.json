@@ -1,13 +1,14 @@
 {
   "name": "yz-sdk",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "scripts": {
     "start": "node ./example.js",
-    "compile": "babel main.js --out-file index.js"
+    "compile": "babel src --out-dir ./"
   },
   "main": "index.js",
   "files": [
-    "index.js"
+    "index.js",
+    "middleware.js"
   ],
   "license": "MIT",
   "dependencies": {

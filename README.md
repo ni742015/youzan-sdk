@@ -5,7 +5,7 @@
 
 ## Requirement
 
-- NODE >= 4.3.0
+- NODE >= 7.6.0
 
 ## Installation
 

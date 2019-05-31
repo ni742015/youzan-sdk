@@ -164,12 +164,15 @@ API.prototype.invoke = async function(apiName, opt = {}) {
 				// console.log('error_response', data.error_response.code);
 				return this.refreshToken().then(() => this.invoke(...args))
 			} else {
-				throw new Error(`yzsdk invoke error: ${error_response.code} - ${error_response.msg}`)
+				const error = new Error(`yzsdk invoke error: ${error_response.code} - ${error_response.msg}`)
+				error.code = error_response.code
+				error.msg = error_response.msg
+				throw error
 			}
 		}
 
 		return data.response || data.error_response
-	}).catch(console.warn)
+	})
 }
 
 /**

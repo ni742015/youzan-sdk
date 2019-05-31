@@ -1,15 +1,8 @@
-'use strict';
+const crypto = require('crypto')
 
-var crypto = require('crypto');
-
-module.exports = function (_ref, cb) {
-	var client_id = _ref.client_id,
-	    client_secret = _ref.client_secret,
-	    _ref$url_perfix = _ref.url_perfix,
-	    url_perfix = _ref$url_perfix === undefined ? 'yzpush' : _ref$url_perfix;
-
-	return async function (ctx, next) {
-		console.log('ctx.url', ctx.url, ctx.url.lastIndexOf(url_perfix));
+module.exports = function({ client_id, client_secret, url_perfix = 'yzpush' }, cb) {
+	return async function(ctx, next) {
+		console.log('ctx.url', ctx.url, ctx.url.lastIndexOf(url_perfix))
 		if (ctx.url.split('/').pop() === url_perfix) {
 			// body结构
 			// mode	number	1-自用型/工具型；0-签名模式消息
@@ -25,11 +18,7 @@ module.exports = function (_ref, cb) {
 			// send_count	number	重发的次数
 			// msg_id	String	消息唯一标识，目前只有V3版消息会收到
 
-			var _ctx$request$body = ctx.request.body,
-			    test = _ctx$request$body.test,
-			    mode = _ctx$request$body.mode,
-			    msg = _ctx$request$body.msg,
-			    sign = _ctx$request$body.sign;
+			const { test, mode, msg, sign } = ctx.request.body
 
 			// 执行逻辑
 			// 1. 判断消息是否测试  —> 解析 test
@@ -39,26 +28,25 @@ module.exports = function (_ref, cb) {
 			// 5. 判断消息的业务 —> 解析 type
 			// 6. 处理消息体 —> 解码 msg ，反序列化消息结构体
 			// 7. 返回接收成功标识 {"code":0,"msg":"success"}
-
 			if (!(test || mode === 0)) {
-				var md5 = crypto.createHash('md5');
-				var msgSign = md5.update(client_id + msg + client_secret).digest('hex');
+				const md5 = crypto.createHash('md5')
+				let msgSign = md5.update(client_id + msg + client_secret).digest('hex')
 				if (sign === msgSign) {
-					var message = decodeURI(msg);
-					console.log('message', message);
+					let message = decodeURI(msg)
+					console.log('message', message)
 
 					if (message.indexOf('{') === 0) {
-						message = JSON.parse(message);
+						message = JSON.parse(message)
 					}
 
-					cb && cb(ctx.request.body, message);
+					cb && cb(ctx.request.body, message)
 				}
 			}
 
-			ctx.body = { code: 0, msg: 'success' };
-			next();
+			ctx.body = { code: 0, msg: 'success' }
+			next()
 		} else {
-			next();
+			next()
 		}
-	};
-};
+	}
+}

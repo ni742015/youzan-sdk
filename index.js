@@ -167,12 +167,15 @@ API.prototype.invoke = async function (apiName) {
 					return _this2.invoke.apply(_this2, _toConsumableArray(args));
 				});
 			} else {
-				throw new Error('yzsdk invoke error: ' + error_response.code + ' - ' + error_response.msg);
+				var error = new Error('yzsdk invoke error: ' + error_response.code + ' - ' + error_response.msg);
+				error.code = error_response.code;
+				error.msg = error_response.msg;
+				throw error;
 			}
 		}
 
 		return data.response || data.error_response;
-	}).catch(console.warn);
+	});
 };
 
 /**
