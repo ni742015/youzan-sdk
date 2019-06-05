@@ -39,14 +39,14 @@ module.exports = function({ client_id, client_secret, url_perfix = 'yzpush' }, c
 						message = JSON.parse(message)
 					}
 
-					cb && cb(ctx.request.body, message)
+					cb && await cb(ctx.request.body, message)
 				}
 			}
 
 			ctx.body = { code: 0, msg: 'success' }
-			next()
+			await next()
 		} else {
-			next()
+			await next()
 		}
 	}
 }

@@ -51,14 +51,14 @@ module.exports = function (_ref, cb) {
 						message = JSON.parse(message);
 					}
 
-					cb && cb(ctx.request.body, message);
+					cb && (await cb(ctx.request.body, message));
 				}
 			}
 
 			ctx.body = { code: 0, msg: 'success' };
-			next();
+			await next();
 		} else {
-			next();
+			await next();
 		}
 	};
 };
