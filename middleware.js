@@ -9,7 +9,7 @@ module.exports = function (_ref, cb) {
 	    url_perfix = _ref$url_perfix === undefined ? 'yzpush' : _ref$url_perfix;
 
 	return async function (ctx, next) {
-		console.log('ctx.url', ctx.url, ctx.url.lastIndexOf(url_perfix));
+		// console.log('ctx.url', ctx.url, ctx.url.lastIndexOf(url_perfix))
 		if (ctx.url.split('/').pop() === url_perfix) {
 			// body结构
 			// mode	number	1-自用型/工具型；0-签名模式消息
@@ -31,16 +31,17 @@ module.exports = function (_ref, cb) {
 			    msg = _ctx$request$body.msg,
 			    sign = _ctx$request$body.sign;
 
-			// 执行逻辑
-			// 1. 判断消息是否测试  —> 解析 test
-			// 2. 判断消息推送的模式 —> 解析 mode
-			// 3. 判断消息是否伪造 —> 解析 sign
-			// 4. 判断消息版本  —> 解析 version
-			// 5. 判断消息的业务 —> 解析 type
-			// 6. 处理消息体 —> 解码 msg ，反序列化消息结构体
-			// 7. 返回接收成功标识 {"code":0,"msg":"success"}
+			ctx.body = { code: 0, msg: 'success'
 
-			if (!(test || mode === 0)) {
+				// 执行逻辑
+				// 1. 判断消息是否测试  —> 解析 test
+				// 2. 判断消息推送的模式 —> 解析 mode
+				// 3. 判断消息是否伪造 —> 解析 sign
+				// 4. 判断消息版本  —> 解析 version
+				// 5. 判断消息的业务 —> 解析 type
+				// 6. 处理消息体 —> 解码 msg ，反序列化消息结构体
+				// 7. 返回接收成功标识 {"code":0,"msg":"success"}
+			};if (!(test || mode === 0)) {
 				var md5 = crypto.createHash('md5');
 				var msgSign = md5.update(client_id + msg + client_secret).digest('hex');
 				if (sign === msgSign) {
@@ -51,11 +52,10 @@ module.exports = function (_ref, cb) {
 						message = JSON.parse(message);
 					}
 
-					cb && (await cb(ctx.request.body, message));
+					cb && cb(ctx.request.body, message);
 				}
 			}
 
-			ctx.body = { code: 0, msg: 'success' };
 			await next();
 		} else {
 			await next();

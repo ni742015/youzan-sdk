@@ -2,7 +2,7 @@ const crypto = require('crypto')
 
 module.exports = function({ client_id, client_secret, url_perfix = 'yzpush' }, cb) {
 	return async function(ctx, next) {
-		console.log('ctx.url', ctx.url, ctx.url.lastIndexOf(url_perfix))
+		// console.log('ctx.url', ctx.url, ctx.url.lastIndexOf(url_perfix))
 		if (ctx.url.split('/').pop() === url_perfix) {
 			// body结构
 			// mode	number	1-自用型/工具型；0-签名模式消息
@@ -19,6 +19,7 @@ module.exports = function({ client_id, client_secret, url_perfix = 'yzpush' }, c
 			// msg_id	String	消息唯一标识，目前只有V3版消息会收到
 
 			const { test, mode, msg, sign } = ctx.request.body
+			ctx.body = { code: 0, msg: 'success' }
 
 			// 执行逻辑
 			// 1. 判断消息是否测试  —> 解析 test
@@ -39,11 +40,10 @@ module.exports = function({ client_id, client_secret, url_perfix = 'yzpush' }, c
 						message = JSON.parse(message)
 					}
 
-					cb && await cb(ctx.request.body, message)
+					cb && cb(ctx.request.body, message)
 				}
 			}
 
-			ctx.body = { code: 0, msg: 'success' }
 			await next()
 		} else {
 			await next()
