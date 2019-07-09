@@ -17,13 +17,13 @@ npm install yz-sdk
 
 ### API使用示例
 1. 基础示例
-
 ```js
 const Api = require('yz-sdk')
 const config = {
     client_id: 'XXXX',
     client_secret: 'XXXX',
-    kdt_id: 'XXXX'
+    authorize_type: 'silent', // silent authorization_code refresh_token
+    payload: 'XXXX' // grant_id redirect_uri refresh_token
 }
 
 const api = new Api(config)
@@ -47,9 +47,10 @@ api
 ```js
 const Api = require('yz-sdk')
 const config = {
-    client_id: 'XXXX',
-    client_secret: 'XXXX',
-    kdt_id: 'XXXX'
+  client_id: 'XXXX',
+  client_secret: 'XXXX',
+  authorize_type: 'silent', // silent authorization_code refresh_token
+  payload: 'XXXX' // grant_id redirect_uri refresh_token
 }
 
 const api = new Api(config, async function () {

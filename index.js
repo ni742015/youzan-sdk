@@ -98,7 +98,7 @@ API.prototype.request = function () {
       }
     }
   }
-  console.log(options);
+  // console.log(options)
 
   return axios.request(options);
 };
