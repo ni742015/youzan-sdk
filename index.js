@@ -98,7 +98,7 @@ API.prototype.request = function () {
       }
     }
   }
-  //   console.log(options)
+  console.log(options);
 
   return axios.request(options);
 };
@@ -201,14 +201,21 @@ API.prototype.invoke = async function (apiName) {
     // var data = res.data
     var _res$data = res.data,
         gw_err_resp = _res$data.gw_err_resp,
-        data = _res$data.data;
-    // console.log(gw_err_resp);
+        data = _res$data.data,
+        response = _res$data.response,
+        error_response = _res$data.error_response;
+
+    var errorRes = gw_err_resp || error_response;
+    // console.log(gw_err_resp, errorRes);
 
     // 无效token重试
-
-    if (gw_err_resp) {
-      var err_code = gw_err_resp.err_code,
-          err_msg = gw_err_resp.err_msg;
+    if (errorRes) {
+      var code = errorRes.code,
+          msg = errorRes.msg,
+          _errorRes$err_code = errorRes.err_code,
+          err_code = _errorRes$err_code === undefined ? code : _errorRes$err_code,
+          _errorRes$err_msg = errorRes.err_msg,
+          err_msg = _errorRes$err_msg === undefined ? msg : _errorRes$err_msg;
 
       if ([4201, 4202, 4203].indexOf(err_code) >= 0) {
         // console.log('error_response', data.error_response.code);
@@ -223,7 +230,7 @@ API.prototype.invoke = async function (apiName) {
       }
     }
 
-    return data || gw_err_resp;
+    return data || response || gw_err_resp;
   });
 };
 

@@ -97,7 +97,7 @@ API.prototype.request = function(opts = {}) {
       }
     }
   }
-//   console.log(options)
+  console.log(options)
 
   return axios.request(options)
 }
@@ -183,12 +183,13 @@ API.prototype.invoke = async function(apiName, opt = {}) {
   // console.log('url, data', url, opt.data)
   return this.request(extend({ url, responseType, method }, opt)).then(res => {
     // var data = res.data
-    var { gw_err_resp, data } = res.data
-	// console.log(gw_err_resp);
+    var { gw_err_resp, data, response, error_response } = res.data
+    var errorRes = gw_err_resp || error_response
+	// console.log(gw_err_resp, errorRes);
 	
     // 无效token重试
-    if (gw_err_resp) {
-      const { err_code, err_msg } = gw_err_resp
+    if (errorRes) {
+      var { code, msg, err_code = code, err_msg = msg } = errorRes
       if ([4201, 4202, 4203].indexOf(err_code) >= 0) {
         // console.log('error_response', data.error_response.code);
         return this.refreshToken().then(() => this.invoke(...args))
@@ -204,7 +205,7 @@ API.prototype.invoke = async function(apiName, opt = {}) {
       }
     }
 
-    return data || gw_err_resp
+    return data || response || gw_err_resp
   })
 }
 

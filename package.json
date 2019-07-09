@@ -1,6 +1,6 @@
 {
   "name": "yz-sdk",
-  "version": "0.0.6",
+  "version": "0.0.7",
   "scripts": {
     "start": "node ./example.js",
     "compile": "babel src --out-dir ./"
@@ -12,7 +12,7 @@
   ],
   "license": "MIT",
   "dependencies": {
-    "urllib": "^2.34.0"
+    "axios": "^0.19.0"
   },
   "devDependencies": {
     "babel-cli": "^6.26.0",
