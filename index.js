@@ -206,7 +206,7 @@ API.prototype.invoke = async function (apiName) {
         error_response = _res$data.error_response;
 
     var errorRes = gw_err_resp || error_response;
-    // console.log(gw_err_resp, errorRes);
+    // console.log(data, response);
 
     // 无效token重试
     if (errorRes) {
