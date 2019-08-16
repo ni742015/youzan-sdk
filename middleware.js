@@ -47,17 +47,19 @@ module.exports = function (_ref, cb) {
       if (!(test || mode === 0)) {
         var md5 = crypto.createHash('md5');
         var msgSign = md5.update(client_id + msg + client_secret).digest('hex');
-        if (sign === msgSign) {
-          var message = decodeURIComponent(msg);
-          console.log('message', message);
-
-          if (message.indexOf('{') === 0) {
-            message = JSON.parse(message);
-          }
-
-          cb && cb(ctx.request.body, message);
+        if (sign !== msgSign) {
+          throw new Error('yzsdk Error: invalid sign');
         }
       }
+
+      var message = decodeURIComponent(msg);
+      // console.log('message', message)
+
+      if (message.indexOf('{') === 0) {
+        message = JSON.parse(message);
+      }
+
+      cb && cb(ctx.request.body, message);
 
       await next();
     } else {

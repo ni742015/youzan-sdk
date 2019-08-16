@@ -38,17 +38,19 @@ module.exports = function(
       if (!(test || mode === 0)) {
         const md5 = crypto.createHash('md5')
         let msgSign = md5.update(client_id + msg + client_secret).digest('hex')
-        if (sign === msgSign) {
-          let message = decodeURIComponent(msg)
-          console.log('message', message)
-
-          if (message.indexOf('{') === 0) {
-            message = JSON.parse(message)
-          }
-
-          cb && cb(ctx.request.body, message)
+        if (sign !== msgSign) {
+          throw new Error('yzsdk Error: invalid sign')
         }
       }
+
+      let message = decodeURIComponent(msg)
+      // console.log('message', message)
+
+      if (message.indexOf('{') === 0) {
+        message = JSON.parse(message)
+      }
+
+      cb && cb(ctx.request.body, message)
 
       await next()
     } else {
