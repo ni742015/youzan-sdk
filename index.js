@@ -133,7 +133,6 @@ API.prototype.getAccessToken = async function (ifForce) {
       }, attr, payload)).then(function (res) {
         return res.data;
       });
-      //   console.log(res)
       if (res.success) {
         var data = res.data;
         // 过期时间，因网络延迟等，将实际过期时间提前10秒，以防止临界点
@@ -181,6 +180,7 @@ API.prototype.invoke = async function (apiName) {
   var _this2 = this;
 
   var opt = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+  var retryTimes = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : 2;
   var _opt$version = opt.version,
       version = _opt$version === undefined ? '3.0.0' : _opt$version,
       _opt$responseType = opt.responseType,
@@ -206,7 +206,7 @@ API.prototype.invoke = async function (apiName) {
         error_response = _res$data.error_response;
 
     var errorRes = gw_err_resp || error_response;
-    // console.log(data, response);
+    // console.log(res.data);
 
     // 无效token重试
     if (errorRes) {
@@ -217,8 +217,9 @@ API.prototype.invoke = async function (apiName) {
           _errorRes$err_msg = errorRes.err_msg,
           err_msg = _errorRes$err_msg === undefined ? msg : _errorRes$err_msg;
 
-      if ([4201, 4202, 4203].indexOf(err_code) >= 0) {
-        // console.log('error_response', data.error_response.code);
+      if ([4201, 4202, 4203].indexOf(err_code) >= 0 && --retryTimes >= 0) {
+        console.log('retryTimes', retryTimes);
+        Array.prototype.splice.call(args, 2, 1, retryTimes);
         return _this2.refreshToken().then(function () {
           return _this2.invoke.apply(_this2, _toConsumableArray(args));
         });

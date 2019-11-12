@@ -130,7 +130,6 @@ API.prototype.getAccessToken = async function(ifForce) {
           [attr]: payload
         })
         .then(res => res.data)
-      //   console.log(res)
       if (res.success) {
         var { data } = res
         // 过期时间，因网络延迟等，将实际过期时间提前10秒，以防止临界点
@@ -169,7 +168,7 @@ API.prototype.refreshToken = function() {
  * @param {Function} method 需要封装的方法
  * @param {Array} args 方法需要的参数
  */
-API.prototype.invoke = async function(apiName, opt = {}) {
+API.prototype.invoke = async function(apiName, opt = {}, retryTimes = 2) {
   var { version = '3.0.0', responseType = 'json', method = 'POST' } = opt
   var args = arguments
   var url = this.prefix
@@ -185,13 +184,14 @@ API.prototype.invoke = async function(apiName, opt = {}) {
     // var data = res.data
     var { gw_err_resp, data, response, error_response } = res.data
     var errorRes = gw_err_resp || error_response
-	// console.log(data, response);
+	// console.log(res.data);
 	
     // 无效token重试
     if (errorRes) {
       var { code, msg, err_code = code, err_msg = msg } = errorRes
-      if ([4201, 4202, 4203].indexOf(err_code) >= 0) {
-        // console.log('error_response', data.error_response.code);
+      if ([4201, 4202, 4203].indexOf(err_code) >= 0 && --retryTimes >= 0 ) {
+        console.log('retryTimes', retryTimes);
+        Array.prototype.splice.call(args, 2, 1, retryTimes)
         return this.refreshToken().then(() => this.invoke(...args))
       } else {
         const error = new Error(
