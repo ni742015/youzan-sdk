@@ -10,12 +10,13 @@ var axios = require('axios');
 var extend = require('util')._extend;
 var middleware = require('./middleware');
 
-var AccessToken = function AccessToken(accessToken, expireTime) {
+var AccessToken = function AccessToken(accessToken, expireTime, others) {
   if (!(this instanceof AccessToken)) {
-    return new AccessToken(accessToken, expireTime);
+    return new AccessToken(accessToken, expireTime, others);
   }
   this.accessToken = accessToken;
   this.expireTime = expireTime;
+  Object.assign(this, others);
 };
 
 /*!
@@ -33,10 +34,12 @@ var API = function API(_ref, getToken, saveToken) {
   var client_id = _ref.client_id,
       client_secret = _ref.client_secret,
       authorize_type = _ref.authorize_type,
-      payload = _ref.payload;
+      payload = _ref.payload,
+      tokenUrl = _ref.tokenUrl;
 
   this.client_id = client_id;
   this.client_secret = client_secret;
+  this.tokenUrl = tokenUrl;
   this.authorize_type = authorize_type;
   this.payload = payload;
 
@@ -109,39 +112,56 @@ API.prototype.request = function () {
 API.prototype.getAccessToken = async function (ifForce) {
   try {
     var token = await this.getToken();
+    console.log('token 111111', res);
+
     var client_id = this.client_id,
         client_secret = this.client_secret,
         authorize_type = this.authorize_type,
-        payload = this.payload;
+        payload = this.payload,
+        tokenUrl = this.tokenUrl;
 
     var attr = {
       silent: 'grant_id',
-      authorization_code: 'redirect_uri',
+      authorization_code: 'code',
       refresh_token: 'refresh_token'
     }[authorize_type];
     if (!token || ifForce) {
-      var url = '/auth/token';
+      if (tokenUrl) {
+        var res = await axios.get(tokenUrl).then(function (res) {
+          return res.data;
+        });
+        var _res$data = res.data,
+            access_token = _res$data.access_token,
+            expires_in = _res$data.expires_in;
 
-      var res = await axios.create({
-        headers: {
-          'Content-type': 'application/json;charset=UTF-8'
-        }
-      }).post(url, _defineProperty({
-        client_id: client_id,
-        client_secret: client_secret,
-        authorize_type: authorize_type
-      }, attr, payload)).then(function (res) {
-        return res.data;
-      });
-      if (res.success) {
-        var data = res.data;
-        // 过期时间，因网络延迟等，将实际过期时间提前10秒，以防止临界点
+        console.log('token', res);
 
-        var expireTime = new Date().getTime() + (data.expires - 10) * 1000;
-        token = this.saveToken(AccessToken(data.access_token, expireTime));
+        token = this.saveToken(AccessToken(access_token, expires_in));
       } else {
-        throw res;
-        // throw new Error(res.message)
+        var url = '/auth/token';
+
+        var res = await axios.create({
+          headers: {
+            'Content-type': 'application/json;charset=UTF-8'
+          }
+        }).post(url, _defineProperty({
+          client_id: client_id,
+          client_secret: client_secret,
+          authorize_type: authorize_type
+        }, attr, payload)).then(function (res) {
+          return res.data;
+        });
+        if (res.success) {
+          var data = res.data;
+          var access_token = data.access_token,
+              expires = data.expires;
+          // 过期时间，因网络延迟等，将实际过期时间提前10秒，以防止临界点
+
+          var expireTime = new Date().getTime() + (expires - 10) * 1000;
+          token = this.saveToken(AccessToken(access_token, expireTime, data));
+        } else {
+          throw res;
+        }
       }
     }
     return token;
@@ -199,11 +219,11 @@ API.prototype.invoke = async function (apiName) {
   // console.log('url, data', url, opt.data)
   return this.request(extend({ url: url, responseType: responseType, method: method }, opt)).then(function (res) {
     // var data = res.data
-    var _res$data = res.data,
-        gw_err_resp = _res$data.gw_err_resp,
-        data = _res$data.data,
-        response = _res$data.response,
-        error_response = _res$data.error_response;
+    var _res$data2 = res.data,
+        gw_err_resp = _res$data2.gw_err_resp,
+        data = _res$data2.data,
+        response = _res$data2.response,
+        error_response = _res$data2.error_response;
 
     var errorRes = gw_err_resp || error_response;
     // console.log(res.data);

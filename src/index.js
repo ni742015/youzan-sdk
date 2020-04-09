@@ -4,12 +4,14 @@ var axios = require('axios')
 var extend = require('util')._extend
 var middleware = require('./middleware')
 
-var AccessToken = function(accessToken, expireTime) {
+var AccessToken = function(accessToken, expireTime, others) {
   if (!(this instanceof AccessToken)) {
-    return new AccessToken(accessToken, expireTime)
+    return new AccessToken(accessToken, expireTime, others)
   }
   this.accessToken = accessToken
   this.expireTime = expireTime
+  Object.assign(this, others)
+
 }
 
 /*!
@@ -26,12 +28,13 @@ var validToken = function(token) {
  */
 
 var API = function(
-  { client_id, client_secret, authorize_type, payload },
+  { client_id, client_secret, authorize_type, payload, tokenUrl },
   getToken,
   saveToken
 ) {
   this.client_id = client_id
   this.client_secret = client_secret
+  this.tokenUrl = tokenUrl
   this.authorize_type = authorize_type
   this.payload = payload
 
@@ -107,38 +110,49 @@ API.prototype.request = function(opts = {}) {
  */
 API.prototype.getAccessToken = async function(ifForce) {
   try {
-    var token = await this.getToken()
-    var { client_id, client_secret, authorize_type, payload } = this
+		var token = await this.getToken()
+		console.log('token 111111', res)
+
+    var { client_id, client_secret, authorize_type, payload, tokenUrl } = this
     var attr = {
       silent: 'grant_id',
-      authorization_code: 'redirect_uri',
+      authorization_code: 'code',
       refresh_token: 'refresh_token'
     }[authorize_type]
     if (!token || ifForce) {
-      var url = '/auth/token'
+      if(tokenUrl) {
+				var res = await axios.get(tokenUrl).then(res => res.data)
+				var {access_token, expires_in} = res.data
+				console.log('token', res)
 
-      var res = await axios
-        .create({
-          headers: {
-            'Content-type': 'application/json;charset=UTF-8'
-          }
-        })
-        .post(url, {
-          client_id,
-          client_secret,
-          authorize_type,
-          [attr]: payload
-        })
-        .then(res => res.data)
-      if (res.success) {
-        var { data } = res
-        // 过期时间，因网络延迟等，将实际过期时间提前10秒，以防止临界点
-        var expireTime = new Date().getTime() + (data.expires - 10) * 1000
-        token = this.saveToken(AccessToken(data.access_token, expireTime))
+        token = this.saveToken(AccessToken(access_token, expires_in))
       } else {
-        throw res
-        // throw new Error(res.message)
+        var url = '/auth/token'
+
+        var res = await axios
+          .create({
+            headers: {
+              'Content-type': 'application/json;charset=UTF-8'
+            }
+          })
+          .post(url, {
+            client_id,
+            client_secret,
+            authorize_type,
+            [attr]: payload
+          })
+          .then(res => res.data)
+        if (res.success) {
+          var { data } = res
+          var {access_token, expires} = data
+          // 过期时间，因网络延迟等，将实际过期时间提前10秒，以防止临界点
+          var expireTime = new Date().getTime() + (expires - 10) * 1000
+          token = this.saveToken(AccessToken(access_token, expireTime, data))
+        } else {
+          throw res
+        }
       }
+
     }
     return token
   } catch (error) {
@@ -185,7 +199,7 @@ API.prototype.invoke = async function(apiName, opt = {}, retryTimes = 2) {
     var { gw_err_resp, data, response, error_response } = res.data
     var errorRes = gw_err_resp || error_response
 	// console.log(res.data);
-	
+
     // 无效token重试
     if (errorRes) {
       var { code, msg, err_code = code, err_msg = msg } = errorRes
