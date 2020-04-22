@@ -111,7 +111,6 @@ API.prototype.request = function(opts = {}) {
 API.prototype.getAccessToken = async function(ifForce) {
   try {
 		var token = await this.getToken()
-		console.log('token 111111', res)
 
     var { client_id, client_secret, authorize_type, payload, tokenUrl } = this
     var attr = {
@@ -120,16 +119,15 @@ API.prototype.getAccessToken = async function(ifForce) {
       refresh_token: 'refresh_token'
     }[authorize_type]
     if (!token || ifForce) {
-      if(tokenUrl) {
-				var res = await axios.get(tokenUrl).then(res => res.data)
-				var {access_token, expires_in} = res.data
-				console.log('token', res)
+  		console.log('get new AccessToken')
 
-        token = this.saveToken(AccessToken(access_token, expires_in))
+      var res
+      if(tokenUrl) {
+				res = await axios.get(tokenUrl).then(res => res.data)
       } else {
         var url = '/auth/token'
 
-        var res = await axios
+        res = await axios
           .create({
             headers: {
               'Content-type': 'application/json;charset=UTF-8'
@@ -142,17 +140,16 @@ API.prototype.getAccessToken = async function(ifForce) {
             [attr]: payload
           })
           .then(res => res.data)
-        if (res.success) {
-          var { data } = res
-          var {access_token, expires} = data
-          // 过期时间，因网络延迟等，将实际过期时间提前10秒，以防止临界点
-          var expireTime = new Date().getTime() + (expires - 10) * 1000
-          token = this.saveToken(AccessToken(access_token, expireTime, data))
-        } else {
-          throw res
-        }
       }
 
+      var {data: {access_token, expires}, success, code, message} = res
+
+      if(success) {
+        // 过期时间，因网络延迟等，将实际过期时间提前10秒，以防止临界点
+        return token = this.saveToken(AccessToken(access_token, expires - 10 * 1000, res))
+      }
+      
+      throw new Error(code, message)
     }
     return token
   } catch (error) {

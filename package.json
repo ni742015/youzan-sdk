@@ -1,6 +1,6 @@
 {
   "name": "yz-sdk",
-  "version": "0.0.13",
+  "version": "0.0.14",
   "scripts": {
     "start": "node ./example.js",
     "compile": "babel src --out-dir ./"
