@@ -216,6 +216,9 @@ API.prototype.invoke = async function(apiName, opt = {}, retryTimes = 2) {
       }
     }
 
+    if(opt.cb) {
+      return opt.cb(res.data)
+    }
     return data || response || gw_err_resp
   })
 }

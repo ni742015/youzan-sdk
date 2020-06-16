@@ -251,6 +251,9 @@ API.prototype.invoke = async function (apiName) {
       }
     }
 
+    if (opt.cb) {
+      return opt.cb(res.data);
+    }
     return data || response || gw_err_resp;
   });
 };
